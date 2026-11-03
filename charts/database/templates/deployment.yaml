@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ .Values.service.name }} 
+  name: {{ .Values.service.name }}
 spec:
   replicas: {{ .Values.replicaCount }}
   selector:
@@ -15,6 +15,7 @@ spec:
       containers:
         - name: database
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
             - containerPort: 27017
           volumeMounts:
@@ -37,12 +38,12 @@ data:
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ .Values.service.name }}  # Fetch service name from Values
-  namespace: {{ .Release.Namespace }}  # Use the release namespace
+  name: {{ .Values.service.name }}
+  namespace: {{ .Release.Namespace }}
 spec:
   selector:
     app: database
   ports:
     - protocol: TCP
-      port: {{ .Values.service.port }}  # Fetch port from Values
-      targetPort: {{ .Values.service.port }}
+      port: {{ .Values.service.port }}
+      targetPort: 27017
