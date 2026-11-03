@@ -1,44 +1,79 @@
-# gh-pages
+# Helm Charts
 
-Helm chart sources and packaged releases for Kubernetes operators using `helm.atakangul.com`.
+This repository hosts a curated set of Helm charts for deploying applications to Kubernetes clusters. It serves as a Helm chart repository via GitHub Pages at **[helm.atakangul.com](https://helm.atakangul.com)**.
 
-```text
-+-----------------+   helm package   +------------+
-| charts/database | ---------------> | docs/*.tgz |
-| charts/web-app  |                  +------------+
-| charts/worker   |                         |
-+-----------------+                         v indexed by
-                                      +-----------------+
-                                      | docs/index.yaml |
-                                      +-----------------+
-```
+## Available Charts
 
-## Quick start
+| Chart | Description | Latest Version |
+|-------|-------------|----------------|
+| `web-app` | Web application deployment chart with staging/production value overlays | `0.1.42` |
+| `database` | Database deployment chart | `1.0.0` |
+| `worker` | Background worker application chart | `0.1.0` |
 
-Use Helm `3.16.4` for the same checks as CI.
+Each chart supports environment-specific values via `values-staging.yaml` and `values-production.yaml` overlays.
 
-```sh
+## Usage
+
+### Add the repository
+
+```bash
 helm repo add atakangul https://helm.atakangul.com
 helm repo update
-helm search repo atakangul
-helm lint charts/web-app
-helm template web-app charts/web-app -f charts/web-app/values-staging.yaml
 ```
 
-## Layout
+### Search for available charts
 
-| Path | What it is |
-| --- | --- |
-| [`charts/database`](charts/database/README.md) | Database Deployment, ConfigMap and Service |
-| [`charts/web-app`](charts/web-app/README.md) | Web Deployment and Service |
-| [`charts/worker`](charts/worker/README.md) | Worker Deployment |
-| [`docs/`](docs/README.md) | Chart archives, repository index and maintainer docs |
+```bash
+helm search repo atakangul
+```
 
-## Docs
+### Install a chart
 
-[Publish a chart](docs/how-to/publish-chart.md) · [Chart index](docs/reference/chart-index.md) · [Architecture](docs/explanation/architecture.md)
+```bash
+# Install the web-app chart with staging values
+helm install my-web-app atakangul/web-app -f values-staging.yaml
 
-## Limits
+# Install the database chart
+helm install my-db atakangul/database
+```
 
-- The repository index does not list every tracked archive. See [chart index](docs/reference/chart-index.md).
-- The charts have no Ingress or persistent storage templates.
+### Deploy a specific environment
+
+```bash
+helm install my-web-app atakangul/web-app \
+  --values values-production.yaml \
+  --namespace production
+```
+
+## Chart Development
+
+Charts are maintained under `charts/` with packaged releases published to `docs/`. The `docs/` directory contains the Helm repository index and all packaged `.tgz` releases, served automatically via GitHub Pages.
+
+### Package and update the index
+
+```bash
+# Package a chart
+helm package charts/web-app -d docs/
+
+# Regenerate the repository index
+helm repo index docs/ --url https://helm.atakangul.com
+```
+
+### Lint a chart
+
+```bash
+helm lint ./charts/web-app
+```
+
+## Repository Structure
+
+```
+.
+├── charts/          # Chart source files
+│   ├── database/    # Database deployment chart
+│   ├── web-app/     # Web application chart
+│   └── worker/      # Worker application chart
+├── docs/            # GitHub Pages content (Helm repo index + packaged charts)
+├── CNAME            # Custom domain configuration
+└── README.md
+```
