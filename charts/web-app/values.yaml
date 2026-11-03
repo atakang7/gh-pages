@@ -1,5 +1,4 @@
 replicaCount: 1
-host: web-app-service
 
 image:
   repository: docker.io/atakan1927/web-app
@@ -10,7 +9,4 @@ service:
   type: ClusterIP
   port: 80
 
-database:
-  host: database-service
-  port: "27017"
-  name: mydatabase
+
