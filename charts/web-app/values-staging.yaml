@@ -1,15 +1,8 @@
 replicaCount: 1
 host: web-app-service-staging
-namespace: staging
 
 image:
   tag: 0.1.42
-
-ingress:
-  enabled: true
-  hosts:
-    - host: web-app-service-staging
-      paths: ["/"]
 
 database:
   host: "database-service-staging"
