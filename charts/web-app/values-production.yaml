@@ -1,18 +1,10 @@
 replicaCount: 1
 host: web-app-service
-namespace: staging
 
 image:
-  tag: 0.1.42
-
-ingress:
-  enabled: true
-  hosts:
-    - host: database-service
-      paths: ["/"]
-
+  tag: "0.1.42"
 
 database:
-  host: "database-service"
+  host: database-service
   port: "27017"
-  name: "mydatabase"
+  name: mydatabase
