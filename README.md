@@ -1,75 +1,79 @@
-# Helm charts
+# Helm Charts
 
-Helm charts for `web-app`, `worker`, and `database`, with packaged releases under `docs/`.
+This repository hosts a curated set of Helm charts for deploying applications to Kubernetes clusters. It serves as a Helm chart repository via GitHub Pages at **[helm.atakangul.com](https://helm.atakangul.com)**.
 
-```text
-+---------+            +--------+
-| web-app |            | worker |
-+---------+            +--------+
-     |                     |
-  TCP 27017            TCP 27017
-     v                     v
-+-----------------------------+
-|          database           |
-+-----------------------------+
+## Available Charts
+
+| Chart | Description | Latest Version |
+|-------|-------------|----------------|
+| `web-app` | Web application deployment chart with staging/production value overlays | `0.1.42` |
+| `database` | Database deployment chart | `1.0.0` |
+| `worker` | Background worker application chart | `0.1.0` |
+
+Each chart supports environment-specific values via `values-staging.yaml` and `values-production.yaml` overlays.
+
+## Usage
+
+### Add the repository
+
+```bash
+helm repo add atakangul https://helm.atakangul.com
+helm repo update
 ```
 
-CI (push or pull request):
+### Search for available charts
 
-```text
-+---------+
-| charts/ |
-+---------+
-     |
-  changes
-     v
-+-----------------------------+
-| .github/workflows/helm.yml  |
-+-----------------------------+
-     |                  |
-  chart YAML        chart YAML
-     v                  v
-+-----------+      +---------------+
-| helm lint |      | helm template |
-+-----------+      +---------------+
+```bash
+helm search repo atakangul
 ```
 
-## Run
+### Install a chart
 
-Helm 3.16.4 is used in CI; installation needs a configured Kubernetes context.
+```bash
+# Install the web-app chart with staging values
+helm install my-web-app atakangul/web-app -f values-staging.yaml
 
-```sh
-git clone https://github.com/atakang7/gh-pages.git
-cd gh-pages
-helm lint charts/web-app -f charts/web-app/values-staging.yaml
-helm template web-app charts/web-app -n staging -f charts/web-app/values-staging.yaml
-helm upgrade --install database charts/database -n staging --create-namespace -f charts/database/values-staging.yaml
-helm upgrade --install web-app charts/web-app -n staging -f charts/web-app/values-staging.yaml
-helm upgrade --install worker charts/worker -n staging -f charts/worker/values-staging.yaml
+# Install the database chart
+helm install my-db atakangul/database
 ```
 
-For production, replace `staging` with `production` in the namespace and values filenames.
+### Deploy a specific environment
 
-## Config
+```bash
+helm install my-web-app atakangul/web-app \
+  --values values-production.yaml \
+  --namespace production
+```
 
-| Value | Default | What |
-| --- | --- | --- |
-| `*.replicaCount` | `1` | Replicas |
-| `*.image.repository` | `docker.io/atakan1927/<chart>` | Image |
-| `*.image.tag` | `1.0.0` | Image tag; web-app overlays use `0.1.42` |
-| `*.image.pullPolicy` | `IfNotPresent` | Pull policy |
-| `web-app.host` | `web-app-service` | Service name |
-| `web-app.service.port` | `80` | Service port; container uses `3004` |
-| `database.service.name` | `database-service` | MongoDB Service name |
-| `database.service.port` | `27017` | MongoDB port |
-| `{web-app,worker}.database.*` | `database-service`, `27017`, `mydatabase` | `DB_HOST`, `DB_PORT`, `DB_NAME` |
+## Chart Development
 
-Environment overrides live in `charts/<chart>/values-staging.yaml` and `values-production.yaml`.
+Charts are maintained under `charts/` with packaged releases published to `docs/`. The `docs/` directory contains the Helm repository index and all packaged `.tgz` releases, served automatically via GitHub Pages.
 
-## Limits
+### Package and update the index
 
-- MongoDB has no persistent volume.
-- Charts have no Ingress or health probes.
-- Fixed labels and the database ConfigMap name can conflict across releases in one namespace.
-- The newest packaged web-app chart under `docs/` is `0.1.41`; source is `0.1.42`.
-- Publishing is manual; see [release steps](docs/RELEASING.md).
+```bash
+# Package a chart
+helm package charts/web-app -d docs/
+
+# Regenerate the repository index
+helm repo index docs/ --url https://helm.atakangul.com
+```
+
+### Lint a chart
+
+```bash
+helm lint ./charts/web-app
+```
+
+## Repository Structure
+
+```
+.
+├── charts/          # Chart source files
+│   ├── database/    # Database deployment chart
+│   ├── web-app/     # Web application chart
+│   └── worker/      # Worker application chart
+├── docs/            # GitHub Pages content (Helm repo index + packaged charts)
+├── CNAME            # Custom domain configuration
+└── README.md
+```
