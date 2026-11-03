@@ -1,0 +1,36 @@
+name: Helm charts
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  charts:
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v4
+      - name: Install Helm
+        uses: azure/setup-helm@v4
+        with:
+          version: v3.16.4
+      - name: Lint and render charts
+        shell: bash
+        run: |
+          set -euo pipefail
+          for chart in charts/*; do
+            [ -d "$chart" ] || continue
+            helm lint "$chart"
+            helm template smoke "$chart" --namespace default > /dev/null
+            for env in staging production; do
+              helm lint "$chart" --values "$chart/values-$env.yaml"
+              helm template "smoke-$env" "$chart" \
+                --namespace "$env" \
+                --values "$chart/values-$env.yaml" > /dev/null
+            done
+          done
